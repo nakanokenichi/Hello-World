@@ -1166,6 +1166,11 @@
       $scope.$watch('pagingOptions', function (newVal, oldVal) {
         if (newVal !== oldVal){
           $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions);
+          try{
+            $.cookie("PAGESIZE", $scope.pagingOptions.pageSize, { expires: 14 });
+          }catch(e){
+            console.log('cookie is not available.please import library'); 
+          }
         }
       }, true);
 
@@ -1247,6 +1252,17 @@
               columns.unshift({displayName:'操作', cellTemplate: $scope.buttons, width: 140});
 
               $scope.columnDefs = columns;
+
+              //ページサイズの設定
+              $defpagesize = $scope.pagingOptions.pageSize;
+              try{
+                if(isFinite($.cookie("PAGESIZE"))){
+                    $defpagesize = $.cookie("PAGESIZE");
+                    $scope.pagingOptions.pageSize = $defpagesize;
+                }
+              }catch(e){
+                console.log('cookie is not available.please import library'); 
+              }
 
               if (searchOptions.reloadOption == true){
                 setTimeout(function() {
