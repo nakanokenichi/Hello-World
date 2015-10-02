@@ -38,6 +38,7 @@ $tag_options = array(
   'jqueryuilatest'       => true,
   'jquerydatepicker'     => true,
   'jquerydatetimepicker' => true,
+  'jquerycookie'         => true,
   'ngfileupload'         => true,
   'uplogiccommon'        => true,
   'list'                 => true,
