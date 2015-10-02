@@ -50,6 +50,7 @@ $tag_options = array(
   'jquerydatepicker'     => true,
   'jquerydatetimepicker' => true,
   'jquerymultiselect'    => true,
+  'jquerycookie'         => true,
   'ngfileupload'         => true,
   'uplogiccommon'        => true,
   'list'                 => true,
