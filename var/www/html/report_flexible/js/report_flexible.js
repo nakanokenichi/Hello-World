@@ -149,13 +149,7 @@ app.controller('ReportFlexibleListController', function($scope, $http, $state, $
 
   $scope.$watch('pagingOptions', function (newVal, oldVal) {
     if (newVal !== oldVal){
-      try{
-        //ページサイズが指定された場合ページサイズをCookieに設定する
-        var tag = "PAGESIZE"+"_"+$scope.folder_param.search_text;
-        $.cookie(tag, $scope.pagingOptions.pageSize, { expires: 90 });
-      }catch(e){
-        console.log('cookie is not available.please import library'); 
-      }
+      $scope.setPageSize($scope.folder_param.search_text);//ページサイズの保存
       $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions);
     }
   }, true);
@@ -281,19 +275,7 @@ app.controller('ReportFlexibleListController', function($scope, $http, $state, $
         }
       });
 
-    //ページサイズをCookieから取得して表示するグリッドに反映する
-    var $defpagesize = $scope.pagingOptions.pageSize;
-    try{
-      var tag = "PAGESIZE"+"_"+$scope.folder_param.search_text;
-      if(isFinite($.cookie(tag))){
-        $defpagesize = $.cookie(tag);
-        $scope.pagingOptions.pageSize = $defpagesize;
-        //保存期限を更新するため、Cookieに再設定する
-        $.cookie(tag, $defpagesize, { expires: 90 });
-      }
-    }catch(e){
-      console.log('cookie is not available.please import library'); 
-    }
+    $scope.initPageSize($scope.folder_param.search_text);//ページサイズの初期化
     $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions);
   }
 
@@ -323,21 +305,7 @@ app.controller('ReportFlexibleListController', function($scope, $http, $state, $
     $scope.folder_param = folder_param;
     //起動時folderListデータ読み込み
     $scope.getListDataAsync();
-
-    //ページサイズをCookieから取得して表示するグリッドに反映する
-    var $defpagesize = $scope.pagingOptions.pageSize;
-    try{
-      var tag = "PAGESIZE"+"_"+$scope.folder_param.search_text;
-      if(isFinite($.cookie(tag))){
-        $defpagesize = $.cookie(tag);
-        $scope.pagingOptions.pageSize = $defpagesize;
-        //保存期限を更新するため、Cookieに再設定する
-        $.cookie(tag, $defpagesize, { expires: 90 });
-      }
-    }catch(e){
-      console.log('cookie is not available.please import library'); 
-    }
-
+    $scope.initPageSize($scope.folder_param.search_text);//ページサイズの初期化
     //起動時Gridデータ読み込み
     $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions);
 
@@ -668,19 +636,7 @@ app.controller('ReportFlexibleCreateDetailController', function($scope, $http, $
     currentPage: 1
   };
 
-  //ページサイズをCookieから取得して表示するグリッドに反映する
-  var $defpagesize = $scope.pagingOptions.pageSize;
-  try{
-    var tag = "PAGESIZE"+"_"+$scope.params.entity.report_name;
-    if(isFinite($.cookie(tag))){
-      $defpagesize = $.cookie(tag);
-      $scope.pagingOptions.pageSize = $defpagesize;
-      //保存期限を更新するため、再設定する
-      $.cookie(tag, $defpagesize, { expires: 90 });
-    }
-  }catch(e){
-    console.log('cookie is not available.please import library'); 
-  }
+  $scope.initPageSize($scope.params.entity.report_name);//ページサイズの初期化
 
   $scope.showGroupPanel = false;
 
@@ -1383,13 +1339,7 @@ app.controller('ReportFlexibleCreateDetailController', function($scope, $http, $
 
   $scope.$watch('pagingOptions', function (newVal, oldVal) {
     if (newVal !== oldVal){
-      try{
-        //ページサイズが指定された場合ページサイズをCookieに設定する
-        var tag = "PAGESIZE"+"_"+$scope.params.entity.report_name;
-        $.cookie(tag, $scope.pagingOptions.pageSize, { expires: 90 });
-      }catch(e){
-        console.log('cookie is not available.please import library'); 
-      }
+      $scope.setPageSize($scope.params.entity.report_name);//ページサイズの保存
       $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions);
     }
   }, true);
@@ -2673,19 +2623,7 @@ app.controller('ReportFlexibleListDetailController', function($scope, $http, $st
     currentPage: 1
   };
 
-  //ページサイズをCookieから取得して表示するグリッドに反映する
-  var $defpagesize = $scope.pagingOptions.pageSize;
-  try{
-    var tag = "PAGESIZE"+"_"+$scope.params.entity.report_name;
-    if(isFinite($.cookie(tag))){
-      $defpagesize = $.cookie(tag);
-      $scope.pagingOptions.pageSize = $defpagesize;
-      //保存期限を更新するため、再設定する
-      $.cookie(tag, $defpagesize, { expires: 90 });
-    }
-  }catch(e){
-    console.log('cookie is not available.please import library'); 
-  }
+  $scope.initPageSize($scope.params.entity.report_name);//ページサイズの初期化
 
   $scope.showGroupPanel = false;
 
@@ -2702,13 +2640,7 @@ app.controller('ReportFlexibleListDetailController', function($scope, $http, $st
 
   $scope.$watch('pagingOptions', function (newVal, oldVal) {
     if (newVal !== oldVal){
-      try{
-        //ページサイズが指定された場合ページサイズをCookieに設定する
-        var tag = "PAGESIZE"+"_"+$scope.params.entity.report_name;
-        $.cookie(tag, $scope.pagingOptions.pageSize, { expires: 90 });
-      }catch(e){
-        console.log('cookie is not available.please import library'); 
-      }
+      $scope.setPageSize($scope.params.entity.report_name);//ページサイズの保存
       $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions);
     }
   }, true);

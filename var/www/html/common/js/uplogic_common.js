@@ -1082,6 +1082,51 @@
 
         $scope.table_data_list[table_name] = table_data_list;
       };
+
+      //ページサイズが指定された場合ページサイズをCookieに設定する
+      $scope.setPageSize = function(pageKeyOption){
+        //undefinedの場合、処理なし
+        if(!$scope.pagingOptions.pageSize) {return;}
+
+        var tag = "PAGESIZE"
+        if(pageKeyOption != null){
+          tag += "_";
+          tag += pageKeyOption;
+        }
+        try{
+          $.cookie(tag, $scope.pagingOptions.pageSize, { expires: 90 });
+        }catch(e){
+          //$.cookieが認識できない場合、
+          //jquery.cookie.jsの指定がない可能性が高いので以下をログに表示
+          console.log('cookie is not available.please import library');
+        }
+      };
+
+      //ページサイズをCookieから取得して表示するグリッドに反映する
+      $scope.initPageSize = function(pageKeyOption){
+        //undefinedの場合、処理なし
+        if(!$scope.pagingOptions.pageSize) {return;}
+
+        var defpagesize = $scope.pagingOptions.pageSize;
+        try{
+          var tag = "PAGESIZE"
+          if(pageKeyOption != null){
+            tag += "_";
+            tag += pageKeyOption;
+          }
+          if(isFinite($.cookie(tag))){
+              defpagesize = $.cookie(tag);
+              $scope.pagingOptions.pageSize = defpagesize;
+              //保存期限を更新するため、再設定する
+              $.cookie(tag, defpagesize, { expires: 90 });
+          }
+        }catch(e){
+          //$.cookieが認識できない場合、
+          //jquery.cookie.jsの指定がない可能性が高いので以下をログに表示
+          console.log('cookie is not available.please import library'); 
+        }
+      }
+
     });
 
     //一覧表示コントローラー
@@ -1165,14 +1210,8 @@
 
       $scope.$watch('pagingOptions', function (newVal, oldVal) {
         if (newVal !== oldVal){
+          $scope.setPageSize(values.collection_name);//ページサイズの保存
           $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions);
-          try{
-            //ページサイズが指定された場合ページサイズをCookieに設定する
-            var tag = "PAGESIZE"+"_"+values.collection_name;
-            $.cookie(tag, $scope.pagingOptions.pageSize, { expires: 90 });
-          }catch(e){
-            console.log('cookie is not available.please import library'); 
-          }
         }
       }, true);
 
@@ -1200,6 +1239,8 @@
       $scope.init = function(){
 
         var param = {'collection_name': values.collection_name };
+
+        $scope.initPageSize(values.collection_name);//ページサイズの初期化
 
         listManager.setupListSelect($scope);
 
@@ -1254,20 +1295,6 @@
               columns.unshift({displayName:'操作', cellTemplate: $scope.buttons, width: 140});
 
               $scope.columnDefs = columns;
-
-              //ページサイズをCookieから取得して表示するグリッドに反映する
-              $defpagesize = $scope.pagingOptions.pageSize;
-              try{
-                var tag = "PAGESIZE"+"_"+values.collection_name;
-                if(isFinite($.cookie(tag))){
-                    $defpagesize = $.cookie(tag);
-                    $scope.pagingOptions.pageSize = $defpagesize;
-                    //保存期限を更新するため、再設定する
-                    $.cookie(tag, $defpagesize, { expires: 90 });
-                }
-              }catch(e){
-                console.log('cookie is not available.please import library'); 
-              }
 
               if (searchOptions.reloadOption == true){
                 setTimeout(function() {
@@ -2025,6 +2052,40 @@
   //詳細表示リスト
   app.controller('DetailListController', function($scope, $http, $state, $stateParams, constants, values, utils, itemManager) {
 
+    //ページサイズが指定された場合ページサイズをCookieに設定する
+    $scope.setPageSize = function(pageKeyOption){
+      var tag = "PAGESIZE"
+      if(pageKeyOption != null){
+        tag += "_";
+        tag += pageKeyOption;
+      }
+      try{
+        $.cookie(tag, $scope.pagingOptions.pageSize, { expires: 90 });
+      }catch(e){
+        console.log('cookie is not available.please import library'); 
+      }
+    };
+
+    //ページサイズをCookieから取得して表示するグリッドに反映する
+    $scope.initPageSize = function(pageKeyOption){
+      var defpagesize = $scope.pagingOptions.pageSize;
+      try{
+        var tag = "PAGESIZE"
+        if(pageKeyOption != null){
+          tag += "_";
+          tag += pageKeyOption;
+        }
+        if(isFinite($.cookie(tag))){
+            defpagesize = $.cookie(tag);
+            $scope.pagingOptions.pageSize = defpagesize;
+            //保存期限を更新するため、再設定する
+            $.cookie(tag, defpagesize, { expires: 90 });
+        }
+      }catch(e){
+        console.log('cookie is not available.please import library'); 
+      }
+    }
+
     $scope.init = function(options){
 
       var
@@ -2070,6 +2131,8 @@
         pageSize   : 5,
         currentPage: 1
       };
+
+      $scope.initPageSize(values.collection_name+"_"+$scope.gridName);//ページサイズの初期化
 
       $scope[$scope.gridName] = {
         data            : 'myData',
@@ -2245,6 +2308,7 @@
     $scope.$watch('pagingOptions', function (newVal, oldVal) {
 
       if (newVal !== oldVal){
+        $scope.setPageSize(values.collection_name+"_"+$scope.gridName);//ページサイズの保存
         $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
       }
     }, true);
