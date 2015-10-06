@@ -53,7 +53,7 @@ app.value('values', {
 app.controller('MyCntr', function($scope, $http){
 });
 
-app.controller('CanvasController', function($scope, $http, $state, $stateParams, $compile, $controller, $timeout, values, utils, itemManager, listManager) {
+app.controller('CanvasController', function($scope, $http, $state, $stateParams, $compile, $controller, $timeout, values, utils, itemManager, listManager,ngDialog) {
 
   var //self   = {},
       common = myObject.common,
@@ -1003,6 +1003,58 @@ app.controller('CanvasController', function($scope, $http, $state, $stateParams,
     );
   };
 
+  //ガジェットの拡大
+  $scope.expandGadget = function(gadget_id){
+    if(typeof $scope.expanding != "undefined"){
+      if($scope.expanding == 1){
+        return;
+      }
+    }  
+    if(!gadget_id){
+      gadget_id = $(this).data('gadget-id');
+    }
+    $scope.expanding = 1;
+
+    $.post(
+      '/canvas/php/gadget_read_single.php',
+      {gadget_id: gadget_id},
+      function(data){
+        if (data.has_error){
+          common.showError(data.message);
+          return;
+        }
+        $scope.expandGadgetDialog(data.value);
+        $scope.expanding = 0;
+      }
+    );
+  };
+
+  //拡大用Dlg表示
+  $scope.expandGadgetDialog = function(gadget){
+    $scope.dialog_title = gadget.gadget_name;
+
+    ngDialog.open({
+      template: '/canvas/template/canvas_graph.php',
+      scope: $scope
+    });
+    
+    //グラフの描画
+    $timeout(function() {
+      if (gadget.gadget_div == $scope.GD_DATA_INPUT){
+        //グラフ（手入力）
+        $scope.createChart(gadget, {is_expand: true});
+      }else{
+        //グラフ（自動集計）
+        $scope.createChart4Graph(gadget, {is_expand: true});
+      }
+    }, 100)
+  };
+
+  //グラフ拡大表示用のDlg閉じる
+  $scope.closeExpandDialog = function(){
+    ngDialog.close();
+  };
+  
   //ガジェット要素の削除
   $scope.removeGadgetElement = function(gadget_id){
     var element_id = 'wid-id-' + gadget_id;
@@ -2340,10 +2392,14 @@ app.controller('CanvasController', function($scope, $http, $state, $stateParams,
       chart_type      = null,
       category_list   = null,
       is_preview      = false,
+      is_expand       = false,
       font_size       = '70%';
 
     if (options && options.is_preview === true){
       is_preview = true;
+      font_size  = '85%';
+    }else if(options && options.is_expand === true){
+      is_expand = true;
       font_size  = '85%';
     }
 
@@ -2353,6 +2409,8 @@ app.controller('CanvasController', function($scope, $http, $state, $stateParams,
       //達成度
       if (is_preview === true){
         chart_id = '#previewGraph';
+      }else if(is_expand === true){
+        chart_id = '#expandGraph';  
       }else{
         chart_id = '#gauge_' + gadget.gadget_id;
       }
@@ -2362,7 +2420,14 @@ app.controller('CanvasController', function($scope, $http, $state, $stateParams,
         value        = Math.floor(result_value / gadget.target_value * 100),
         gaugeOptions = {
           chart: {
-            type: 'solidgauge'
+            type: 'solidgauge',
+            events: {
+              click: function(){
+                if(!(is_preview === true || is_expand === true)){
+                  $scope.expandGadget(gadget.gadget_id);
+                }
+              }
+            }
           },
           title: null,
           pane: {
@@ -2449,6 +2514,8 @@ app.controller('CanvasController', function($scope, $http, $state, $stateParams,
 
       if (is_preview === true){
         chart_id = '#previewGraph';
+      }else if(is_expand === true){
+        chart_id = '#expandGraph';  
       }else{
         chart_id = '#chart_' + gadget.gadget_id;
       }
@@ -2480,7 +2547,14 @@ app.controller('CanvasController', function($scope, $http, $state, $stateParams,
 
       $(chart_id).highcharts({
         chart: {
-          type: chart_type
+          type: chart_type,
+          events: {
+            click: function(){
+              if(!(is_preview === true || is_expand === true)){
+                $scope.expandGadget(gadget.gadget_id);
+              }
+            }
+          }
         },
         title: {
           text: ''
@@ -3443,9 +3517,9 @@ app.controller('CanvasController', function($scope, $http, $state, $stateParams,
     return value;
   };
 
-  $scope.createChart = function(gadget){
+  $scope.createChart = function(gadget, options){
 
-    var chart_id    = '#chart_' + gadget.gadget_id,
+    var chart_id    = null,
         target_list = new Array(),
         result_list = null,
         data        = null,
@@ -3463,8 +3537,16 @@ app.controller('CanvasController', function($scope, $http, $state, $stateParams,
         tooltip         = null,
         chart_type      = null,
         series          = [],
-        legend          = null;
+        legend          = null,
+        is_expand       = false;
 
+    
+    if (options && options.is_expand === true){
+      chart_id = '#expandGraph';
+      is_expand = true;
+    }else{
+      chart_id = '#chart_' + gadget.gadget_id;
+    }
 
     data = gadget.data;
 
@@ -3478,7 +3560,14 @@ app.controller('CanvasController', function($scope, $http, $state, $stateParams,
         value        = Math.floor(gadget.result / gadget.target * 100),
         gaugeOptions = {
           chart: {
-            type: 'solidgauge'
+            type: 'solidgauge',
+            events: {
+              click: function(){
+                if(!(is_expand === true)){
+                  $scope.expandGadget(gadget.gadget_id);
+                }
+              }
+            }
           },
           title: null,
           pane: {
@@ -3757,7 +3846,14 @@ app.controller('CanvasController', function($scope, $http, $state, $stateParams,
 
       $(chart_id).highcharts({
         chart: {
-          type: chart_type
+          type: chart_type,
+          events: {
+            click: function(){
+              if(!(is_expand === true)){
+                $scope.expandGadget(gadget.gadget_id);
+              }
+            }
+          }
         },
         title: {
           text: null
@@ -4344,7 +4440,7 @@ app.controller('CanvasController', function($scope, $http, $state, $stateParams,
 
     header = '<header style="width: 100%;" role="heading">';
 
-    header += '<h2>' + gadget_name + '</h2>'
+    header += '<h2 style="width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + gadget_name + '</h2>'
                    +   '<div class="jarviswidget-ctrls" role="menu">'
                    +     '<a data-placement="bottom" title="" rel="tooltip" class="button-icon" href="javascript:void(0);" '
                    +       'data-original-title="編集" data-element-kind="gadget_update" data-gadget-id="' + gadget.gadget_id + '">'
@@ -4388,17 +4484,17 @@ app.controller('CanvasController', function($scope, $http, $state, $stateParams,
              +    '" style="margin: 20px 18px 30px 18px;">'
              +    '<span class="percent percent-sign txt-color-blue font-xl semi-bold">' + percent + '</span>'
              +  '</div>';*/
-        html += '<div id="gauge_' + gadget.gadget_id + '" class="solidGauge"></div>';
+        html += '<div id="gauge_' + gadget.gadget_id + '" class="solidGauge" style="cursor: pointer"></div>';
       }else{
-        html += '<div id="chart_' + gadget.gadget_id + '" class="chart"></div>';
+        html += '<div id="chart_' + gadget.gadget_id + '" class="chart" style="cursor: pointer"></div>';
         //html += '<div id="chart_' + gadget.gadget_id + '" class="chart" style="height: 240px; width: 257px;"></div>';
       }
     }else if (gadget_div == $scope.GD_GRAPH){
       //グラフ（自動集計）
       if (graph_type_div == 4){
-        html += '<div id="gauge_' + gadget.gadget_id + '" class="solidGauge"></div>';
+        html += '<div id="gauge_' + gadget.gadget_id + '" class="solidGauge" style="cursor: pointer"></div>';
       }else{
-        html += '<div id="chart_' + gadget.gadget_id + '" class="chart" style="height: 240px; width: 257px;"></div>';
+        html += '<div id="chart_' + gadget.gadget_id + '" class="chart" style="height: 240px; width: 257px;cursor: pointer;"></div>';
       }
     }else if (gadget_div == $scope.GD_TODO_LIST){
       //やることリスト

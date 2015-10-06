@@ -271,3 +271,11 @@ div[name=aggregationMethodSelectorPane] button.common-button {
   width  : 100%;
   border : solid 1px #bdbdbd;
 }
+
+#expandGraph {
+  padding: 10px;
+  height : 370px;
+  /*width  : 370px;*/
+  width  : 100%;
+  border : solid 1px #bdbdbd;
+}
