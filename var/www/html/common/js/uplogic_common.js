@@ -789,7 +789,7 @@
     }]);
 
     //datepicker:ng-modelなし
-    app.directive('datepickerForjQuery', ['utils', function(utils) {
+    app.directive('datepickerforjquery', ['utils', function(utils) {
       return {
         restrict: 'EA',
         scope   : {
@@ -853,7 +853,7 @@
     }]);
 
     //datetimepicker:ng-modelなし
-    app.directive('datetimepickerForjQuery', ['utils', function(utils){
+    app.directive('datetimepickerforjquery', ['utils', function(utils){
       return {
         restrict: 'EA',
         scope   : {
