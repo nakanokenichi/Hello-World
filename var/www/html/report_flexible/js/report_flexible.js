@@ -636,7 +636,9 @@ app.controller('ReportFlexibleCreateDetailController', function($scope, $http, $
     currentPage: 1
   };
 
-  $scope.initPageSize($scope.params.entity.report_name);//ページサイズの初期化
+  if($scope.params != null){
+    $scope.initPageSize($scope.params.entity.report_name);//ページサイズの初期化
+  }
 
   $scope.showGroupPanel = false;
 
@@ -1339,7 +1341,9 @@ app.controller('ReportFlexibleCreateDetailController', function($scope, $http, $
 
   $scope.$watch('pagingOptions', function (newVal, oldVal) {
     if (newVal !== oldVal){
-      $scope.setPageSize($scope.params.entity.report_name);//ページサイズの保存
+      if($scope.params != null){
+        $scope.setPageSize($scope.params.entity.report_name);//ページサイズの保存
+      }
       $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions);
     }
   }, true);
