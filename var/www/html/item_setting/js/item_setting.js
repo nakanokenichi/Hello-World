@@ -557,6 +557,16 @@ app.controller('ItemSettingController', function($scope, $http, $state, $statePa
 
     $scope.page_title = page_title;
 
+    //商談引継ぎボタンの表示・非表示の制御
+    $scope.prospects_mapping_button = false;
+    if((values.collection_name　=== "prospects")||
+       (values.collection_name　=== "companies")||
+       (values.collection_name　=== "customers")||
+       (values.collection_name　=== "business_discussion")
+      ){
+      $scope.prospects_mapping_button = true;
+    }
+
     //デフォルト項目の表示
     $.each(def_items, function(i, v){
       var
@@ -1839,6 +1849,8 @@ app.controller('ProspectMappingController', function($scope, $http, $state, $sta
   $scope.init = function(){
     $scope.page_title = "見込客データの関連付け";
     var param = null;
+
+    $scope.prospectlists = [];
 
     //設定データ及び設定項目の取得
     $http.post(
