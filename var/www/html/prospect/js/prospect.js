@@ -122,6 +122,16 @@ app.config(function($stateProvider, $urlRouterProvider) {
           templateUrl: '/item_setting/template/item_setting_main.php'
         }
       }
+    })
+    //見込み客データの引継ぎ設定
+    .state('prospect_mapping', {
+      url: '/prospect/prospect.php/prospect_mapping',
+      views: {
+        '': {
+          controller : 'ProspectMappingController',
+          templateUrl: '/item_setting/template/item_mapping.php'
+        }
+      }
     });
 });
 
