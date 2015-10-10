@@ -3,6 +3,9 @@
         <div class="col-md-12">
           <div class="title">
             <span>{{page_title}}</span>
+              <div style="float: right;" ng-show="prospects_mapping_button">
+                <a ui-sref="prospect_mapping" class="edit_button button_font_nomal">商談作成時の項目マッピング</a>
+              </div>
           </div>
         </div>
       </div>
