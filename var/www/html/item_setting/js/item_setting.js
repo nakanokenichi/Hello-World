@@ -1832,4 +1832,182 @@ app.controller('ItemEditController', function($scope, $http, $state, $stateParam
   $scope.init();
 });
 
+//見込み客データの引継ぎ設定
+app.controller('ProspectMappingController', function($scope, $http, $state, $stateParams, $compile, values, item_setting_constants, itemSettingManager) {
+
+  //初期化処理
+  $scope.init = function(){
+    $scope.page_title = "見込客データの関連付け";
+    var param = null;
+
+    //設定データ及び設定項目の取得
+    $http.post(
+      '/item_setting/php/item_mapping_read.php',
+      param
+    ).success(
+      function(data){
+        if (data.has_error){
+          alert(data.message);
+          return;
+        }
+        var list = null;
+        list = data.value.list;
+
+        //selectリストの設定(会社)
+        if(list['companies_strings'] != null){
+          $scope.companies_strings = list['companies_strings'];
+        }
+        if(list['companies_selects'] != null){
+          $scope.companies_selects = list['companies_selects'];
+        }
+        if(list['companies_datetimes'] != null){
+          $scope.companies_datetimes = list['companies_datetimes'];
+        }
+        if(list['companies_dates'] != null){
+          $scope.companies_dates = list['companies_dates'];
+        }
+        if(list['companies_texts'] != null){
+          $scope.companies_texts = list['companies_texts'];
+        }
+        if(list['companies_numbers'] != null){
+          $scope.companies_numbers = list['companies_numbers'];
+        }
+        if(list['companies_multiple_selects'] != null){
+          $scope.companies_multiple_selects = list['companies_multiple_selects'];
+        }
+
+        //selectリストの設定(担当者)
+        if(list['customers_strings'] != null){
+          $scope.customers_strings = list['customers_strings'];
+        }
+        if(list['customers_selects'] != null){
+          $scope.customers_selects = list['customers_selects'];
+        }
+        if(list['customers_datetimes'] != null){
+          $scope.customers_datetimes = list['customers_datetimes'];
+        }
+        if(list['customers_dates'] != null){
+          $scope.customers_dates = list['customers_dates'];
+        }
+        if(list['customers_texts'] != null){
+          $scope.customers_texts = list['customers_texts'];
+        }
+        if(list['customers_numbers'] != null){
+          $scope.customers_numbers = list['customers_numbers'];
+        }
+        if(list['customers_multiple_selects'] != null){
+          $scope.customers_multiple_selects = list['customers_multiple_selects'];
+        }
+
+        //selectリストの設定(商談)
+        if(list['business_strings'] != null){
+          $scope.business_strings = list['business_strings'];
+        }
+        if(list['business_selects'] != null){
+          $scope.business_selects = list['business_selects'];
+        }
+        if(list['business_datetimes'] != null){
+          $scope.business_datetimes = list['business_datetimes'];
+        }
+        if(list['business_dates'] != null){
+          $scope.business_dates = list['business_dates'];
+        }
+        if(list['business_texts'] != null){
+          $scope.business_texts = list['business_texts'];
+        }
+        if(list['business_numbers'] != null){
+          $scope.business_numbers = list['business_numbers'];
+        }
+        if(list['business_multiple_selects'] != null){
+          $scope.business_multiple_selects = list['business_multiple_selects'];
+        }
+
+        //見込客の項目・selectリストの選択項目の設定
+        if(list['prospectlists'] != null){
+          $scope.prospectlists = list['prospectlists'];
+        } 
+    });
+
+  /** テストコード
+  $scope.companies_strings = [
+                    {field_name:"",display_name:"なし"},
+                    {field_name:"company_name",display_name:"会社名"},
+                    {field_name:"phone_no",display_name:"電話番号"},
+                    {field_name:"fax_no",display_name:"FAX番号"},
+                    {field_name:"email",display_name:"e-mail"},
+                    {field_name:"site_url",display_name:"サイトURL"}];
+  
+  $scope.companies_selects = [
+                    {field_name:"",display_name:"なし"},
+                    {field_name:"prefecture_div",display_name:"都道府県"}];
+  
+
+  $scope.customers_strings = [
+                    {field_name:"",display_name:"なし"},
+                    {field_name:"company_name",display_name:"会社名"},
+                    {field_name:"phone_no",display_name:"電話番号"},
+                    {field_name:"fax_no",display_name:"FAX番号"},
+                    {field_name:"email",display_name:"e-mail"},
+                    {field_name:"site_url",display_name:"サイトURL"}];
+
+  $scope.customers_selects = [
+                    {field_name:"",display_name:"なし"},
+                    {field_name:"prefecture_div",display_name:"都道府県"}];
+
+  $scope.business_strings = [
+                    {field_name:"",display_name:"なし"},
+                    {field_name:"business_discussion_name",display_name:"商談名"},
+                    {field_name:"item_001",display_name:"認知経路"}];
+
+  $scope.business_selects = [
+                    {field_name:"",display_name:"なし"},
+                    {field_name:"situation_div",display_name:"商談状況"}];
+  $scope.prospectlists = 
+                   [ {"label":"会社名",
+                      "companies":{"field_name":"company_name","type_string":true,"type_select":false},
+                      "customers":{"field_name":"","type_string":true,"type_select":false},
+                      "business":{"field_name":"","type_string":true,"type_select":false}}, 
+                     {"label":"電話番号",
+                      "companies":{"field_name":"phone_no","type_string":true,"type_select":false},
+                      "customers":{"field_name":"phone_no","type_string":true,"type_select":false},
+                      "business":{"field_name":"business_discussion_name","type_string":true,"type_select":false}}, 
+                     {"label":"FAX番号",
+                      "companies":{"field_name":"fax_no","type_string":true,"type_select":false},
+                      "customers":{"field_name":"fax_no","type_string":true,"type_select":false},
+                      "business":{"field_name":"item_001","type_string":true,"type_select":false}}, 
+                     {"label":"e-mail",
+                      "companies":{"field_name":"email","type_string":true,"type_select":false},
+                      "customers":{"field_name":"email","type_string":true,"type_select":false},
+                      "business":{"field_name":"","type_string":true,"type_select":false}}, 
+                     {"label":"都道府県",
+                      "companies":{"field_name":"prefecture_div","type_string":false,"type_select":true},
+                      "customers":{"field_name":"prefecture_div","type_string":false,"type_select":true},
+                      "business":{"field_name":"situation_div","type_string":false,"type_select":true}}];
+  **/                  
+  }
+
+  $scope.update = function(){
+    
+    var prospectlists = [],
+        param         = {prospectlists: prospectlists};
+
+    param.prospectlists = $scope.prospectlists;
+    //更新
+    $http.post(
+        '/item_setting/php/item_mapping_update.php',
+        param
+    ).success(function(data){
+      if (data.has_error){
+        alert(data.message);
+        return;
+      }
+      //もとに戻る
+　　　　　$state.go('item_settings');
+    });
+
+  }
+
+  $scope.init();
+});
+
 })();
