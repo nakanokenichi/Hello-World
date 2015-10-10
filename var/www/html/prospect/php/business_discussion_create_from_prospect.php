@@ -10,7 +10,6 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/common/php/CustomerManager.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/common/php/BusinessDiscussionManager.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/common/php/ActivityHistoryManager.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/common/php/RecentViewManager.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/common/php/OrganItemManager.php';
 
 Utils::startSession();
 
@@ -76,34 +75,7 @@ if (isset($prospect['company_name'])){
     $company    = $company_mgr->getBy($organ_id, array('company_name' => $company_name));
     $company_id = $company['_id'];
   }else{
-    $param = array('company_name' => $company_name, 'sales_staff' => $sales_staff, 'sales_staff_name' => $sales_staff_name);
-
-    $item_mgr = new OrganItemManager();
-    $cursor   = $item_mgr->getOrganItemList($organ_id, 'prospects');
-
-    foreach($cursor as $obj){
-      if(isset($obj['create_transaction'])){
-        $transaction = $obj['create_transaction'];
-        foreach($transaction as $item_id){
-          $collection_name   = $item_id['collection_name'];
-          if(strcmp($collection_name,'companies') != 0){
-            continue;
-          }
-          $_id  = $item_id['item_id'];
-          $item = $item_mgr->getBy($organ_id, array('_id' => new MongoId($_id)));
-          if (is_null($item)){
-             continue;
-          }
-          $key = $item['field_name'];
-          $value = $prospect[$obj['field_name']];
-          if(isset($value)){
-            $param = array_merge($param,array($key=>$value));
-          }
-        }
-      }
-    }
-    
-    $company_id = $company_mgr->create($organ_id, $param);
+    $company_id = $company_mgr->create($organ_id, array('company_name' => $company_name, 'sales_staff' => $sales_staff, 'sales_staff_name' => $sales_staff_name));
   }
 
   $prospect['company_id'] = $company_id;
