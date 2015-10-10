@@ -2263,3 +2263,7 @@ nav.navbar {
 #tourDivPane4TourNavigation{
   padding: 5px 10px;
 }
+
+.button_font_nomal{
+  font-weight: normal;
+}
