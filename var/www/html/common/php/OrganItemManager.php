@@ -513,4 +513,46 @@ class OrganItemManager extends MongoDbBaseManager
     return true;
   }
 
+  public function mergeTransferItem($organ_id, $target_collection_name,$prospect,$param)
+  {
+    if (Utils::isEmpty($organ_id)){
+      Utils::log('組織IDがありません');
+      return false;
+    }
+
+    if (Utils::isEmpty($target_collection_name)){
+      Utils::log('コレクション名称がありません');
+      return false;
+    }
+
+    $cursor = $this->getOrganItemList($organ_id, 'prospects');
+
+    foreach($cursor as $obj){
+      
+      if(isset($obj['create_transaction'])){
+        $transaction = $obj['create_transaction'];
+        foreach($transaction as $item_id){
+          $collection_name   = $item_id['collection_name'];
+          if(!isset($collection_name)){
+            continue;
+          }
+          if(strcmp($collection_name,$target_collection_name) != 0){
+            continue;
+          }
+          $_id  = $item_id['item_id'];
+          $item = $this->getBy($organ_id, array('_id' => new MongoId($_id)));
+          if (is_null($item)){
+             continue;
+          }
+          $key = $item['field_name'];
+          $value = $prospect[$obj['field_name']];
+          if(isset($value)){
+            $param = array_merge($param,array($key=>$value));
+          }
+        }
+      }
+    }
+    return $param;
+  }
+
 }
