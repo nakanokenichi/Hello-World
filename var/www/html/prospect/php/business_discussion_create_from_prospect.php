@@ -10,6 +10,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/common/php/CustomerManager.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/common/php/BusinessDiscussionManager.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/common/php/ActivityHistoryManager.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/common/php/RecentViewManager.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/common/php/OrganItemManager.php';
 
 Utils::startSession();
 
@@ -75,7 +76,15 @@ if (isset($prospect['company_name'])){
     $company    = $company_mgr->getBy($organ_id, array('company_name' => $company_name));
     $company_id = $company['_id'];
   }else{
-    $company_id = $company_mgr->create($organ_id, array('company_name' => $company_name, 'sales_staff' => $sales_staff, 'sales_staff_name' => $sales_staff_name));
+    $param = array(
+      'company_name' => $company_name, 
+      'sales_staff' => $sales_staff, 
+      'sales_staff_name' => $sales_staff_name
+    );
+    $item_mgr = new OrganItemManager();
+    //見込み客から引き継ぐ項目及び値をマージする
+    $param = $item_mgr->mergeTransferItem($organ_id,'companies',$prospect,$param);
+    $company_id = $company_mgr->create($organ_id, $param);
   }
 
   $prospect['company_id'] = $company_id;
@@ -89,7 +98,23 @@ if (isset($prospect['company_name'])){
 
 $customer_mgr            = new CustomerManager();
 
-$customer_id             = $customer_mgr->create($organ_id, $prospect);
+$customer_prm              = array(
+  'company_id'       => $company_id,
+  'company_name'     => $company_name,
+  'sales_staff'      => $sales_staff,
+  'sales_staff_name' => $sales_staff_name
+);
+$bef_count = count($customer_prm);
+
+$item_mgr = new OrganItemManager();
+//見込み客から引き継ぐ項目及び値をマージする
+$customer_prm = $item_mgr->mergeTransferItem($organ_id,'customers',$prospect,$customer_prm);
+$customer_id = null;
+if(count($customer_prm) == $bef_count){
+  $customer_id             = $customer_mgr->create($organ_id, $prospect);
+}else{
+  $customer_id             = $customer_mgr->create($organ_id, $customer_prm);
+}
 
 $business_discussion_mgr = new BusinessDiscussionManager();
 
@@ -100,6 +125,8 @@ $param                   = array(
   'sales_staff'      => $sales_staff,
   'sales_staff_name' => $sales_staff_name
 );
+//見込み客から引き継ぐ項目及び値をマージする
+$param = $item_mgr->mergeTransferItem($organ_id,'business_discussions',$prospect,$param);
 
 $business_discussion_id  = $business_discussion_mgr->create($organ_id, $param);
 
