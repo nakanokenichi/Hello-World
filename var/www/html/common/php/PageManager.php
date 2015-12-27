@@ -385,82 +385,114 @@ END_OF_DATA;
     if (Utils::isPresent($options) && is_array($options)){
       //共通
       if (array_key_exists('uplogiccommon', $options) === true && $options['uplogiccommon'] === true){
-        $tags .= '<script src="/common/js/uplogic_common.js"></script>';
+        //$tags .= '<script src="/common/js/uplogic_common.js"></script>';
+        $file_path = '/common/js/uplogic_common.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //import
       if (array_key_exists('import', $options) === true && $options['import'] === true){
-        $tags .= '<script src="/import/js/import.js"></script>';
+        //$tags .= '<script src="/import/js/import.js"></script>';
+        $file_path = '/import/js/import.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //detail_list_customer
       if (array_key_exists('detail_list_customer', $options) === true && $options['detail_list_customer'] === true){
-        $tags .= '<script src="/customer/js/detail_list_customer.js"></script>';
+        //$tags .= '<script src="/customer/js/detail_list_customer.js"></script>';
+        $file_path = '/customer/js/detail_list_customer.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //detail_list_business_discussion
       if (array_key_exists('detail_list_business_discussion', $options) === true && $options['detail_list_business_discussion'] === true){
-        $tags .= '<script src="/business_discussion/js/detail_list_business_discussion.js"></script>';
+        //$tags .= '<script src="/business_discussion/js/detail_list_business_discussion.js"></script>';
+        $file_path = '/business_discussion/js/detail_list_business_discussion.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //detail_list_business_contract
       if (array_key_exists('detail_list_business_contract', $options) === true && $options['detail_list_business_contract'] === true){
-        $tags .= '<script src="/business_contract/js/detail_list_business_contract.js"></script>';
+        //$tags .= '<script src="/business_contract/js/detail_list_business_contract.js"></script>';
+        $file_path = '/business_contract/js/detail_list_business_contract.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //detail_list_merchandise
       if (array_key_exists('detail_list_merchandise', $options) === true && $options['detail_list_merchandise'] === true){
-        $tags .= '<script src="/merchandise/js/detail_list_merchandise.js"></script>';
+        //$tags .= '<script src="/merchandise/js/detail_list_merchandise.js"></script>';
+        $file_path = '/merchandise/js/detail_list_merchandise.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //detail_list_opportunity_merchandise
       if (array_key_exists('detail_list_opportunity_merchandise', $options) === true && $options['detail_list_opportunity_merchandise'] === true){
-        $tags .= '<script src="/opportunity_merchandise/js/detail_list_opportunity_merchandise.js"></script>';
+        //$tags .= '<script src="/opportunity_merchandise/js/detail_list_opportunity_merchandise.js"></script>';
+        $file_path = '/opportunity_merchandise/js/detail_list_opportunity_merchandise.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //activity_history
       if (array_key_exists('activity_history', $options) === true && $options['activity_history'] === true){
-        $tags .= '<script src="/activity_history/js/detail_list_activity_history.js"></script>';
+        //$tags .= '<script src="/activity_history/js/detail_list_activity_history.js"></script>';
+        $file_path = '/activity_history/js/detail_list_activity_history.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //mbl_opportunity_merchandise_list_select_for_detail
       if (array_key_exists('mbl_opportunity_merchandise_list_select_for_detail', $options) === true && $options['mbl_opportunity_merchandise_list_select_for_detail'] === true){
-        $tags .= '<script src="/mobile/source/mbl_opportunity_merchandise/js/mbl_opportunity_merchandise_list_select_for_detail.js"></script>';
+        //$tags .= '<script src="/mobile/source/mbl_opportunity_merchandise/js/mbl_opportunity_merchandise_list_select_for_detail.js"></script>';
+        $file_path = '/mobile/source/mbl_opportunity_merchandise/js/mbl_opportunity_merchandise_list_select_for_detail.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //mbl_business_discussion_list_for_detail
       if (array_key_exists('mbl_business_discussion_list_for_detail', $options) === true && $options['mbl_business_discussion_list_for_detail'] === true){
-        $tags .= '<script src="/mobile/source/mbl_business_discussion/js/mbl_business_discussion_list_for_detail.js"></script>';
+        //$tags .= '<script src="/mobile/source/mbl_business_discussion/js/mbl_business_discussion_list_for_detail.js"></script>';
+        $file_path = '/mobile/source/mbl_business_discussion/js/mbl_business_discussion_list_for_detail.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //mbl_customer_list_for_detail
       if (array_key_exists('mbl_customer_list_for_detail', $options) === true && $options['mbl_customer_list_for_detail'] === true){
-        $tags .= '<script src="/mobile/source/mbl_customer/js/mbl_customer_list_for_detail.js"></script>';
+        //$tags .= '<script src="/mobile/source/mbl_customer/js/mbl_customer_list_for_detail.js"></script>';
+        $file_path = '/mobile/source/mbl_customer/js/mbl_customer_list_for_detail.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //mbl_activity_history
       if (array_key_exists('mbl_activity_history', $options) === true && $options['mbl_activity_history'] === true){
-        $tags .= '<script src="/mobile/source/mbl_activity_history/js/mbl_activity_history.js"></script>';
+        //$tags .= '<script src="/mobile/source/mbl_activity_history/js/mbl_activity_history.js"></script>';
+        $file_path = '/mobile/source/mbl_activity_history/js/mbl_activity_history.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //list
       if (array_key_exists('list', $options) === true && $options['list'] === true){
-        $tags .= '<script src="/list/js/list.js"></script>';
+        //$tags .= '<script src="/list/js/list.js"></script>';
+        $file_path = '/list/js/list.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //search
       if (array_key_exists('search', $options) === true && $options['search'] === true){
-        $tags .= '<script src="/search/js/search.js"></script>';
+        //$tags .= '<script src="/search/js/search.js"></script>';
+        $file_path = '/search/js/search.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //item_setting
       if (array_key_exists('item_setting', $options) === true && $options['item_setting'] === true){
-        $tags .= '<script src="/item_setting/js/item_setting.js"></script>';
+        //$tags .= '<script src="/item_setting/js/item_setting.js"></script>';
+        $file_path = '/item_setting/js/item_setting.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
 
       //contract
       if (array_key_exists('contract', $options) === true && $options['contract'] === true){
-        $tags .= '<script src="/contract/js/contract.js"></script>';
+        //$tags .= '<script src="/contract/js/contract.js"></script>';
+        $file_path = '/contract/js/contract.js';
+        $tags .= '<script src="'.$file_path.'?ver='.$this->getFileTime($file_path).'"></script>';
       }
     }
 
@@ -1257,6 +1289,16 @@ EOS;
 <script src="/common/js/smartadmin/plugin/datatables/DT_bootstrap.js"></script>
 EOS;
     return $tag;
+  }
+
+  private function getFileTime($filename) {
+    $document_root = Utils::getDocumentRoot();
+    $filename = $document_root . $filename;
+    if (file_exists($filename)) {
+      return date('YmdHis', filemtime($filename));
+    } else {
+      return '';
+    }
   }
 
 }
