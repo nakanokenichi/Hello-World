@@ -246,7 +246,7 @@ END_OF_DATA;
       if (array_key_exists('jquerymultiselect', $options) === true && $options['jquerymultiselect'] === true){
         $tags .= '<script src="/common/js/jquery.multiselect.min.js"></script>';
       }
-      
+
       if (array_key_exists('jquerycookie', $options) === true && $options['jquerycookie'] === true){
         $tags .= '<script src="/common/js/jquery.cookie.js"></script>';
       }
@@ -583,8 +583,16 @@ EOS;
             .  '</li>'
             .  '<li>'
             .    '<a href="/business_discussion/business_discussion.php/item_settings" target="_self">項目設定&nbsp;‐&nbsp;商談</a>'
-            .  '</li>'
-            .  '<li>'
+            .  '</li>';
+            $navi .=
+                '<li>'
+              .    '<a href="/business_discussion/business_discussion.php/repeat_recorded_item_settings" target="_self">項目設定&nbsp;‐&nbsp;商談の繰り返し計上</a>'
+              .  '</li>';
+            $navi .= '<li>'
+            //.  '<li>'
+            //.    '<a href="/business_discussion/business_discussion.php/repeat_recorded_item_settings" target="_self">項目設定&nbsp;‐&nbsp;商談の繰り返し計上</a>'
+            //.  '</li>'
+            //.  '<li>'
             .    '<a href="/merchandise/merchandise.php/item_settings" target="_self">項目設定&nbsp;‐&nbsp;商品マスタ</a>'
             .  '</li>'
             .  '<li>'
