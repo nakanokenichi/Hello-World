@@ -1169,6 +1169,53 @@
         }
       }
 
+      //Gridの幅が変更された場合、幅のサイズをCookieに設定する
+      $scope.setGridWidths = function(gridKeyOption,gridWidthCookie){
+        var tag = "GRIDWIDTHS"
+        if(gridKeyOption != null){
+          tag += "_";
+          tag += gridKeyOption;
+        }
+        try{
+          $.cookie(tag, gridWidthCookie, { expires: 90 });
+        }catch(e){
+          console.log('cookie is not available.please import library');
+        }
+      }
+
+      //Gridの幅をCookieから取得して表示するグリッドに反映する
+      $scope.initGridWidths = function(gridKeyOption,columns){
+        //undefinedの場合、処理なし
+        if(!$scope.gridOptions.ngGrid.styleText) {return;}
+
+        try{
+          var tag = "GRIDWIDTHS"
+          if(gridKeyOption != null){
+            tag += "_";
+            tag += gridKeyOption;
+          }
+          if($.cookie(tag)){
+              var gridWidthCookie = $.cookie(tag);
+              var gridWidths = JSON.parse(gridWidthCookie);
+              
+              $.each(columns, function(index, column){
+                if(gridWidths[column.field]){
+                  column.width = gridWidths[column.field];
+                }
+              });
+
+              //保存期限を更新するため、再設定する
+              $.cookie(tag, gridWidthCookie, { expires: 90 });
+          }
+        }catch(e){
+          //$.cookieが認識できない場合、
+          //jquery.cookie.jsの指定がない可能性が高いので以下をログに表示
+          console.log('cookie is not available.please import library');
+        }
+
+        return columns;
+      }
+
     });
 
     //一覧表示コントローラー
@@ -1271,6 +1318,35 @@
         }
       }, true);
 
+      $scope.$watch('gridOptions.ngGrid.styleText', function (newVal, oldVal) {//GridのStyleをWatch
+        if (newVal !== oldVal){
+          if($scope.gridOptions.ngGrid){
+            var styleText = $scope.gridOptions.ngGrid.styleText;
+            var defWidth = 100;
+            var gridWidths = {};
+            $.each($scope.columnDefs, function(index, column){
+              if(index == 0){return true;}
+              var key = '.colt'+index;  
+              var fromIndex = styleText.indexOf(key);
+              if(fromIndex > 0){
+                fromIndex = fromIndex + key.length+10;
+                var toIndex = styleText.indexOf('px',fromIndex);
+                if(toIndex > 0){
+                  var width = styleText.substring(fromIndex,toIndex);
+                  if(defWidth!=width){//列の幅がデフォルト（100）でない場合、保存対象とする
+                    gridWidths[$scope.columnDefs[index].field] = width;
+                  }
+                }
+              }
+            });
+            if(Object.keys(gridWidths).length > 0){
+              var gridWidthCookie = JSON.stringify(gridWidths);//JSON形式で保存
+              $scope.setGridWidths(values.collection_name,gridWidthCookie);//Girdの幅を保存
+            }
+          }
+        }
+      }, true);
+
       $scope.columnDefs = [];
 
       $scope.gridLayoutPlugin = new ngGridLayoutPlugin();
@@ -1351,6 +1427,7 @@
 
               columns.unshift({displayName:'操作', cellTemplate: $scope.buttons, width: 140});
 
+              columns　= $scope.initGridWidths(values.collection_name,columns);//Grid幅の設定  
               $scope.columnDefs = columns;
 
               if (searchOptions.reloadOption == true){
