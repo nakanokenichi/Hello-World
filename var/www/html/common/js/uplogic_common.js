@@ -129,6 +129,8 @@
     app.value('searchOptions', {
       pagingOptions: {},
       filterOptions: {},
+      sortInfo     : {},
+      scrollTop    : 0,
       reloadOption: false,
     });
 
@@ -266,7 +268,7 @@
         }
 
         scope[collection_name]['sales_staff']      = user['user_id'];
-        scope[collection_name]['sales_staff_name'] = user['last_name'] + user['first_name'];
+        scope[collection_name][collection_name + '___' + 'sales_staff_name'] = user['last_name'] + user['first_name'];
 
         scope[collection_name]['responsible']      = user['user_id'];
         scope[collection_name]['responsible_name'] = user['last_name'] + user['first_name'];
@@ -631,9 +633,9 @@
                   $.each(name_list, function(i, v){
                     object[field_name] += object[v];
                   });*/
-                  object[field_name] = object[item.external_collection_singular_name + '_name'];
+                  object[field_name] = object[item.collection_name + '___' + item.external_collection_singular_name + '_name'];
                 }else{
-                  object[field_name] = object[item.external_name_field_name];
+                  object[field_name] = object[item.collection_name + '___' + item.external_name_field_name];
                 }
               }
             }
@@ -717,11 +719,29 @@
         );
       };
 
+      itemManager.getItemList = function(collection_name, options){
+        if(options === undefined){
+          return $http.post(
+            '/my_item_list/php/my_item_list_read_single.php',
+            {collection_name: collection_name}
+          );
+        }else{
+          return $http.post(
+            '/my_item_list/php/my_item_list_read_single.php',
+            {collection_name: collection_name,
+             options : options}
+          );  
+        }        
+      };
+
       //グリッドカラム設定の作成
       itemManager.createColumnDefinisions = function(list, options){
 
         var
           columns = [];
+        const cellEditableTemplate = '<input type="text" ng-input="COL_FIELD" ng-model="COL_FIELD" ng-class="\'colt\' + col.index" >';
+        const cellDateEditableTemplate = '<input id="row" type="text" datepicker="" ng-input="COL_FIELD" ng-model="COL_FIELD" ng-class="\'colt\' + col.index" ng-focus="setDateData(row,col)" >';
+        const cellNumberEditableTemplate = '<input type="number" ng-input="COL_FIELD" ng-model="COL_FIELD" ng-class="\'colt\' + col.index" ng-focus="setNumData(row,col)" ng-blur="outNumData(row,col)">';
 
         $.each(list, function(index, value){
 
@@ -732,7 +752,10 @@
             type         = value['type'],
             visible      = value['visible'],
             width        = value['width'],
-            col          = null;
+            edit_cell    = false,
+            col          = null,
+            editableTemplate = null,
+            cellTemplate  = null;
 
           if (!options){
             options = {};
@@ -742,7 +765,26 @@
             return;
           }
 
-          col = {field: field_name, displayName: display_name, width: 100, visible: (visible === false ? false: true)};
+          if(options.edit_cell){
+            edit_cell = options.edit_cell;
+          }
+
+          switch(type){
+            case "number":
+              editableTemplate = cellNumberEditableTemplate;
+              break;
+            case "date":
+              editableTemplate = cellDateEditableTemplate;
+              break;
+            default:
+              editableTemplate = cellEditableTemplate;
+          }
+
+          col = {field: field_name, displayName: display_name, width: 100,
+           visible: (visible === false ? false: true),
+           enableCellEdit: (edit_cell === true ? true: false),
+           editableCellTemplate: editableTemplate,
+           type : type};
 
           if (width){
             col.width = width;
@@ -1123,18 +1165,24 @@
         }catch(e){
           //$.cookieが認識できない場合、
           //jquery.cookie.jsの指定がない可能性が高いので以下をログに表示
-          console.log('cookie is not available.please import library'); 
+          console.log('cookie is not available.please import library');
         }
       }
 
     });
 
     //一覧表示コントローラー
-    app.controller('ListController', function($scope, $http, $state, $controller, values, utils, itemManager, listManager, searchManager, searchOptions){
+    app.controller('ListController', function($scope, $http, $state, $controller, values, utils, itemManager, listManager, searchManager, searchOptions, ngDialog){
 
       $controller('BaseController', {$scope: $scope});
 
       $scope.filterOptions = {
+      };
+
+      $scope.sortInfo = {
+        columns    : [],
+        directions : [],
+        fields     : []
       };
 
       $scope.totalServerItems = 0;
@@ -1149,6 +1197,14 @@
 
         $scope.myData           = data;
         $scope.totalServerItems = total;
+
+        if($scope.sortInfo){
+          if($scope.sortInfo.columns.length > 0 &&
+            $scope.sortInfo.directions.length > 0 &&
+            $scope.sortInfo.fields.length > 0 ){
+            $scope.gridLayoutPlugin.sortGrid($scope.sortInfo, data);
+          }
+        }
 
         if (!$scope.$$phase){
           $scope.$apply();
@@ -1217,7 +1273,7 @@
 
       $scope.columnDefs = [];
 
-      var gridLayoutPlugin = new ngGridLayoutPlugin();
+      $scope.gridLayoutPlugin = new ngGridLayoutPlugin();
 
       $scope.gridOptions = {
         data              : 'myData',
@@ -1226,6 +1282,7 @@
         totalServerItems  : 'totalServerItems',
         pagingOptions     : $scope.pagingOptions,
         filterOptions     : $scope.filterOptions,
+        sortInfo          : $scope.sortInfo,
         columnDefs        : 'columnDefs',
         enableRowSelection: false,
         enableColumnResize: true,
@@ -1233,7 +1290,7 @@
         rowHeight         : 50,
         headerRowHeight   : 50,
         footerRowHeight   : 50,
-        plugins: [gridLayoutPlugin]
+        plugins: [$scope.gridLayoutPlugin]
       };
 
       $scope.init = function(){
@@ -1303,6 +1360,7 @@
                   $scope.filterOptions.fieldName   = searchOptions.filterOptions.fieldName,
                   $scope.filterOptions.searchText  = searchOptions.filterOptions.searchText,
                   $scope.filterOptions.searchValue = searchOptions.filterOptions.searchValue;
+                  $scope.sortInfo                  = searchOptions.sortInfo;
                   if ($scope.filterOptions.fieldName){
                     $("#searchSelect").val(($scope.filterOptions.fieldName));
                     if ($scope.filterOptions.searchText){
@@ -1315,10 +1373,12 @@
                   setTimeout(function() {
                     $('#gridContainer').removeAttr('style');
                     searchOptions.reloadOption = false;
+                    $scope.gridLayoutPlugin.setGridScrollTop(searchOptions.scrollTop);
                   }, 1800);
                 }, 1800);
               }
 
+              $scope.bulk_delete_div = myObject.common.selected_organ.bulk_delete_div;
             }
           );
 
@@ -1344,6 +1404,10 @@
         var _id = row.entity._id.$id;
 
         $state.go('update', {id: _id});
+
+        $scope.sortInfo             = $scope.gridOptions.ngGrid.config.sortInfo;
+        searchOptions.sortInfo      = $scope.sortInfo;
+        searchOptions.scrollTop     = $scope.gridLayoutPlugin.getGridScrollTop();
 
         searchOptions.pagingOptions = $scope.pagingOptions;
         searchOptions.filterOptions = $scope.filterOptions;
@@ -1379,6 +1443,10 @@
         var _id = row.entity._id.$id;
 
         $state.go('detail', {id: _id});
+
+        $scope.sortInfo             = $scope.gridOptions.ngGrid.config.sortInfo;
+        searchOptions.sortInfo      = $scope.sortInfo;
+        searchOptions.scrollTop     = $scope.gridLayoutPlugin.getGridScrollTop();
 
         searchOptions.pagingOptions = $scope.pagingOptions;
         searchOptions.filterOptions = $scope.filterOptions;
@@ -1419,6 +1487,63 @@
         }
 
       };
+      
+      //一括削除用Dlgを表示する
+      $scope.showDeleteDialog = function(){
+        var result = "";
+        $scope.user = {};
+        $scope.dialog_title = values.title + "の一括削除";
+        $.each($scope.lists, function(i, v){
+          if (v['_id']['$id'] == $scope.list_id ){
+            result = v['list_name'];
+          }
+        });
+        $scope.delete_condition　= result;
+        ngDialog.open({
+          template: '/delete/template/bulk_delete_dialog.php',
+          scope: $scope
+        });
+
+      };
+      //一括削除用Dlgを閉じる
+      $scope.closeDeleteDialog = function(){
+        $scope.user　= undefined;
+        ngDialog.close();
+      };
+      //一括削除
+      $scope.doBulkDelete = function(){
+        var password = $scope.user.txtPassword;
+
+        if (!password||password==""){
+          alert('ログインパスワードを入力してください');
+          return;
+        }
+        $http.post(
+          '/delete/php/check_password.php',
+          {password: password}
+        ).success(function(data){
+          if (data.has_error){
+            myObject.common.showError('パスワードが間違っています');
+            return;
+          }
+          if (!confirm(values.title + 'を一括で削除してもよろしいですか？')){
+            return;
+          }
+
+          $http.post(
+            '/delete/php/bulk_delete.php',
+            {collection_name:　values.collection_name, list_id: $scope.list_id}
+          ).success(function(data){
+            if (data.has_error){
+              myObject.common.showError(data.message);
+              return;
+            }
+            $scope.user　= undefined;
+            ngDialog.close();
+            $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions);
+          });  
+        });
+      };
 
       $scope.init();
 
@@ -1436,7 +1561,7 @@
       };
 
       //保存
-      $scope.create = function(){
+      $scope.create = function(callback){
 
         var
           param = {};
@@ -1457,7 +1582,9 @@
             myObject.common.showError(data.message);
             return;
           }
-
+          if(callback){
+            callback(data.value);
+          }
           $state.go('list');
         });
       };
@@ -1502,7 +1629,7 @@
       };
 
       //更新
-      $scope.update = function(){
+      $scope.update = function(callback){
 
         var
           param = {_id: $scope.currentId};
@@ -1524,7 +1651,9 @@
             myObject.common.showError(data.message);
             return;
           }
-
+          if(callback){
+            callback();
+          }
           //$state.go('list');
 
           $window.history.back();
@@ -1837,20 +1966,20 @@
         if (name.indexOf('+') !== false){
           name_list = name.split('+');
 
-          $parent[$scope.collection_name][$scope.singular_name + '_name'] = '';
+          $parent[$scope.collection_name][$scope.collection_name + '___' + $scope.singular_name + '_name'] = '';
 
           $.each(name_list, function(i, v){
             if (typeof entity[v] !== 'undefined'){
-              $parent[$scope.collection_name][$scope.singular_name + '_name'] += entity[v];
+              $parent[$scope.collection_name][$scope.collection_name + '___' + $scope.singular_name + '_name'] += entity[v];
             }else {
-              $parent[$scope.collection_name][$scope.singular_name + '_name'] = "";
+              $parent[$scope.collection_name][$scope.collection_name + '___' + $scope.singular_name + '_name'] = "";
             }
           });
         }else{
           if (typeof entity[name] !== 'undefined'){
-            $parent[$scope.collection_name][name] = entity[name];
+            $parent[$scope.collection_name][$scope.collection_name + '___' + name] = entity[name];
           }else {
-            $parent[$scope.collection_name][name] = "";
+            $parent[$scope.collection_name][$scope.collection_name + '___' + name] = "";
           }
         }
 
@@ -2018,7 +2147,7 @@
           $parent = $scope.$parent,
           name_column_name = $scope.name_column_name;
           //name             = $scope.singular_name + '_name',
-          name             = $scope.field_name + '_name',
+          name             = $scope.collection_name + '___' + $scope.field_name + '_name',
           name_list        = null,
           name_str         = '';
 
@@ -2052,6 +2181,31 @@
   //詳細表示リスト
   app.controller('DetailListController', function($scope, $http, $state, $stateParams, constants, values, utils, itemManager) {
 
+    $scope.setNumData = function(row,col){
+      if(typeof row.entity[col.field] === "string"){
+        var amount = row.entity[col.field].replace( /,/g, "" );
+        row.entity[col.field] = Number(amount);
+      }
+    };
+
+    $scope.outNumData = function(row,col){
+      var amount = String(row.entity[col.field]).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+      row.entity[col.field] = amount;
+      if($scope.calcTotalAmount){
+        $scope.calcTotalAmount();
+      }
+    };
+
+    $scope.setDateData = function(row,col){
+      $("#row").unbind("blur");
+      var outDateData = function(){
+        setTimeout(function() {
+          $scope.$broadcast('ngGridEventEndCellEdit');
+        }, 300);
+      };
+      $("#row").bind("blur",outDateData);
+    };
+
     //ページサイズが指定された場合ページサイズをCookieに設定する
     $scope.setPageSize = function(pageKeyOption){
       var tag = "PAGESIZE"
@@ -2062,7 +2216,7 @@
       try{
         $.cookie(tag, $scope.pagingOptions.pageSize, { expires: 90 });
       }catch(e){
-        console.log('cookie is not available.please import library'); 
+        console.log('cookie is not available.please import library');
       }
     };
 
@@ -2082,16 +2236,20 @@
             $.cookie(tag, defpagesize, { expires: 90 });
         }
       }catch(e){
-        console.log('cookie is not available.please import library'); 
+        console.log('cookie is not available.please import library');
       }
     }
 
-    $scope.init = function(options){
+    $scope.init = function(options,callback){
 
       var
         grid_base_name      = null,
         method_base_name    = null,
-        detail_list_options = values.detail_list_options;
+        detail_list_options = values.detail_list_options,
+        edit_cell　= false,
+        operation　= true,
+        enablePaging = true,//ページングオプションの判定
+        showError = true;//エラーメッセージ表示オプション
 
       if (options){
         $scope.collectionName   = options.collectionName;
@@ -2107,6 +2265,12 @@
         $scope.hasDetail        = options.hasDetail;
         $scope.detailUrl        = options.detailUrl;
         $scope.afterDelete      = options.afterDelete;
+        if(options.gridOption){
+          edit_cell = options.gridOption.hasOwnProperty('edit_cell') ? options.gridOption.edit_cell : false;
+          operation = options.gridOption.hasOwnProperty('operation') ? options.gridOption.operation : true;
+          enablePaging = options.gridOption.hasOwnProperty('enablePaging') ? options.gridOption.enablePaging : true;
+          showError = options.gridOption.hasOwnProperty('showError') ? options.gridOption.showError : true;
+        }
       }
 
       if (!detail_list_options){
@@ -2136,7 +2300,7 @@
 
       $scope[$scope.gridName] = {
         data            : 'myData',
-        enablePaging    : true,
+        enablePaging    : enablePaging,
         showFooter      : true,
         totalServerItems: 'totalServerItems',
         pagingOptions   : $scope.pagingOptions,
@@ -2160,7 +2324,9 @@
         function(data){
 
           if (data.has_error){
-            myObject.common.showError(data.message);
+            if(showError){
+              myObject.common.showError(data.message);
+            }
             return;
           }
 
@@ -2170,7 +2336,7 @@
 
           $scope.organ_item_list = organ_item_list;
 
-          columns = itemManager.createColumnDefinisions(organ_item_list);
+          columns = itemManager.createColumnDefinisions(organ_item_list,{edit_cell:edit_cell});
 
           $scope.buttons = '<div class="common-buttons">';
 
@@ -2184,6 +2350,8 @@
                            +  '<button tooltip data-original-title="削除" id="deleteButton" type="button" class="common-delete-icon-button" ng-click="delete(row)">&nbsp;</button>';
           }else if (detail_list_options[$scope.singularName].mode == 'select'){
             $scope.buttons += '<button tooltip data-original-title="解除" id="releaseButton" type="button" class="common-release-icon-button" ng-click="release(row)">&nbsp;</button>&nbsp;';
+          }else if (detail_list_options[$scope.singularName].mode == 'delete'){
+            $scope.buttons += '<button tooltip data-original-title="削除" id="deleteButton" type="button" class="common-delete-icon-button" ng-click="delete(row)">&nbsp;</button>';
           }
 
           $scope.buttons += '</div>';
@@ -2197,9 +2365,9 @@
               buttons_obj.width = 100;
             }
           }
-
-          columns.unshift(buttons_obj);
-
+          if(operation){
+            columns.unshift(buttons_obj);
+          }
           $scope.columnDefs = columns;
 
           var
@@ -2209,7 +2377,11 @@
 
           $scope.parent    = values.currentParent;
 
-          $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage);
+          $scope.getPagedDataAsync(enablePaging === true ? $scope.pagingOptions.pageSize : null, $scope.pagingOptions.currentPage);
+
+          if(callback){
+            callback();
+          }
         }
       );
     };
@@ -2281,9 +2453,18 @@
         },
         relation = utils.getRelation({main: values.collection_name, detail: $scope.collectionName});
 
+      if ((values.collection_name == "prospects" && $scope.collectionName =="activity_histories") ||
+          (values.collection_name == "business_discussions" && $scope.collectionName =="opportunity_merchandises")
+        ) {
+        param.id_name  = $scope.collectionName + '___' + values.id_name;
+      }
+      if($scope.business_discussions && values.id_name !="business_discussion_id"){
+        param.id_value = $stateParams.detail_list_data_id;
+        $scope.detail_list_data_id = $stateParams.detail_list_data_id;
+      }
       if (relation == constants.RELATION_MANY_TO_MANY){
         //コレクション間の関係が多対多の場合
-        param.id_name  = values.id_name + 's';
+        param.id_name  = $scope.collectionName + '___' + values.id_name + 's';
         param.relation = constants.RELATION_MANY_TO_MANY;
       }
 
@@ -2468,34 +2649,34 @@
 
           //名称
           $.each(values.name_name, function(i, v){
-            $scope[$scope.collectionName][v] = $scope.parent[v];
+            $scope[$scope.collectionName][$scope.collectionName + '___' + v] = $scope.parent[v];
           });
 
           if (typeof values.public_name_name !== 'undefined'){
-            $scope[$scope.collectionName][values.public_name_name] = $scope.parent[values.public_name_name];
+            $scope[$scope.collectionName][$scope.collectionName + '___' + values.public_name_name] = $scope.parent[values.public_name_name];
           }
         }else if ($scope.relation == constants.RELATION_MANY_TO_MANY){
           //多対多の場合
         }
 
         //会社ID
-        if ($scope.parent['company_id'] && $scope.parent['company_name']){
+        if ($scope.parent['company_id'] && $scope.parent[values.collection_name + '___company_name']){
           if (!$scope[$scope.collectionName]){
             $scope[$scope.collectionName] = {};
           }
 
           $scope[$scope.collectionName]['company_id']   = $scope.parent['company_id'];
-          $scope[$scope.collectionName]['company_name'] = $scope.parent['company_name'];
+          $scope[$scope.collectionName][$scope.collectionName + '___company_name'] = $scope.parent[values.collection_name + '___company_name'];
         }
 
         //商談ID
-        if ($scope.parent['business_discussion_id'] && $scope.parent['business_discussion_name']){
+        if ($scope.parent['business_discussion_id'] && $scope.parent[values.collection_name + '___business_discussion_name']){
           if (!$scope[$scope.collectionName]){
             $scope[$scope.collectionName] = {};
           }
 
           $scope[$scope.collectionName]['business_discussion_id']   = $scope.parent['business_discussion_id'];
-          $scope[$scope.collectionName]['business_discussion_name'] = $scope.parent['business_discussion_name'];
+          $scope[$scope.collectionName][$scope.collectionName + '___business_discussion_name'] = $scope.parent[values.collection_name + '___business_discussion_name'];
         }
 
       }
@@ -2505,15 +2686,15 @@
     };
 
     //保存
-    $scope.create = function(){
+    $scope.create = function(callback){
 
       var
         detail_list_data = $scope[$scope.collectionName];
         param            = {},
-        id_name          = values.id_name;
+        id_name          = $scope.collectionName + '___' + values.id_name;
 
       if ($scope.relation == constants.RELATION_MANY_TO_MANY){
-        id_name                   = id_name + 's';
+        id_name                   = $scope.collectionName + '___' + values.id_name + 's';
         detail_list_data[id_name] = [$scope.currentId];
       }else{
         if (!detail_list_data[id_name]){
@@ -2532,7 +2713,9 @@
           alert(data.message);
           return;
         }
-
+        if(callback){
+          callback(data.value);
+        }
         if ($scope.relation == constants.RELATION_MANY_TO_MANY){
           //リレーションが多対多の場合、相互にキーを持つ
           var
@@ -2540,7 +2723,7 @@
             singular_name = values.collection_singular_name,
             update_url    = '/' + singular_name + '/php/' + singular_name + '_update.php',
             param         = {_id: $scope.currentId, relation: constants.RELATION_MANY_TO_MANY},
-            ids_name      = $scope.singularName + '_ids';
+            ids_name      = values.collection_name + '___' + $scope.singularName + '_ids';
 
           param[singular_name] = {};
 
@@ -2608,7 +2791,7 @@
     };
 
     //保存
-    $scope.update = function(){
+    $scope.update = function(callback){
 
       var
         detail_list_data = $scope[$scope.collectionName],
@@ -2627,7 +2810,9 @@
           alert(data.message);
           return;
         }
-
+        if(callback){
+          callback();
+        }
         $state.go('detail', {id: $scope.currentId});
       });
     };
@@ -2912,7 +3097,7 @@
         return;
       }
 
-      param.ids_name       = $scope.singular_name + '_ids';
+      param.ids_name       = $scope.external_collection_name + '___' + $scope.singular_name + '_ids';
       param.ids_value      = $scope.currentId;
       param.update_id_list = select_list;
 
@@ -2931,7 +3116,7 @@
           param      = {},
           ids        = select_list,
           object     = {},
-          ids_name   = $scope.external_singular_name + '_ids',
+          ids_name   = $scope.collection_name + '___' + $scope.external_singular_name + '_ids',
           relation   = utils.getRelation({main: $scope.collection_name, detail: $scope.external_collection_name});
 
         object[ids_name] = ids;
